@@ -1,0 +1,52 @@
+name: Build SovaTest APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Create gradle wrapper jar
+        run: |
+          mkdir -p gradle/wrapper
+          wget -q https://services.gradle.org/distributions/gradle-8.4-bin.zip -O /tmp/gradle.zip
+          unzip -q /tmp/gradle.zip -d /tmp/gradle-dist
+          cp /tmp/gradle-dist/gradle-8.4/lib/plugins/gradle-wrapper-*.jar gradle/wrapper/gradle-wrapper.jar 2>/dev/null || \
+          (cd /tmp && wget -q https://raw.githubusercontent.com/gradle/gradle/v8.4.0/gradle/wrapper/gradle-wrapper.jar -O gradle-wrapper.jar && cp gradle-wrapper.jar $GITHUB_WORKSPACE/gradle/wrapper/gradle-wrapper.jar)
+
+      - name: Create gradlew script
+        run: |
+          cat > gradlew << 'EOF'
+          #!/bin/sh
+          exec gradle "$@"
+          EOF
+          chmod +x gradlew
+
+      - name: Build with system Gradle
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: gradle assembleDebug --stacktrace --no-daemon
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: SovaTest-apk
+          path: app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+          retention-days: 30
