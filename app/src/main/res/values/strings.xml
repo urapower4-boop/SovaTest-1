@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">SovaTest</string>
+    <string name="launch_hint">АВТО — вкл. Accessibility. ПІДКАЗКА — просто ПУСК</string>
+    <string name="accessibility_description">Дозволяє SovaTest читати вміст тесту у Chrome та натискати правильні відповіді. Використовується тільки на сайтах тестів.</string>
+</resources>
